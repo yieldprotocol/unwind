@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.21;
+pragma solidity ^0.8.21;
 
-import { IPool } from "lib/strategy-v2/lib/yieldspace-tv/src/interfaces/IPool.sol";
+import { IERC20 } from "lib/yield-utils-v2/src/token/IERC20.sol";
+import { IPool } from "lib/yieldspace-tv/src/interfaces/IPool.sol";
 import { IStrategy } from "lib/strategy-v2/src/interfaces/IStrategy.sol";
 import { IStrategyV1 } from "lib/strategy-v2/src/deprecated/IStrategyV1.sol";
 import { IFYToken } from "lib/vault-v2/src/interfaces/IFYToken.sol";
+import { IJoin } from "lib/vault-v2/src/interfaces/IJoin.sol";
 import { DataTypes } from "lib/vault-v2/src/interfaces/DataTypes.sol";
 import { ICauldron } from "lib/vault-v2/src/interfaces/ICauldron.sol";
 import { ILadle } from "lib/vault-v2/src/interfaces/ILadle.sol";
@@ -16,17 +18,18 @@ contract Unwind {
         FYTOKEN,
         POOL,
         STRATEGYV2,
-        STRATEGYV1
-        STRATEGYUPGRADE,
+        STRATEGYV1,
+        STRATEGYUPGRADE
     }
 
-    enum Strategy {
-        DEPLOYED,
-        DIVESTED,
-        INVESTED,
-        EJECTED,
-        DRAINED
-    }
+    error UnknownChain(uint256 chainId);
+    error UnknownAddress(address target);
+    error MustUpgradeStrategy(address strategy);
+    error NotEnoughAllowance(address target);
+    error StuckStrategy(address strategy);
+    error NotLiquidityAddress(address target);
+    error NotLendingAddress(address target);
+    error VaultDoesNotExist(bytes12 vaultId);
 
     address[] public knownContracts;
     mapping(address => Type) public contractTypes; // Surely I could do magic and do a read-only storage mapping, but not worth the effort and complexity this time.
@@ -37,7 +40,7 @@ contract Unwind {
     // @dev Push into storage all the known addresses and their types.
     constructor () {
         address current;
-        if (block.chainId == 1) {
+        if (block.chainid == 1) {
             ladle = ILadle(0x6cB18fF2A33e981D1e38A663Ca056c0a5265066A);
             cauldron = ICauldron(0xc88191F8cb8e6D4a668B047c1C8503432c3Ca867);
             current = 0xFCb9B8C5160Cf2999f9879D8230dCed469E72eeb; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
@@ -125,7 +128,7 @@ contract Unwind {
             current = 0xa874c4dF3CAA250307C0351AAa13d3d20f70c321; knownContracts.push(current); contractTypes[current] = Type.STRATEGYV2;
             current = 0xE7C82f5964b810B6AE01ab116991D5E110C846f5; knownContracts.push(current); contractTypes[current] = Type.STRATEGYV2;
             current = 0x93dEe161a396aF75c7458a65687895299bFeB437; knownContracts.push(current); contractTypes[current] = Type.STRATEGYV2; // FRAX - DIVESTED
-        } else if (block.chainId = 42121) {
+        } else if (block.chainid == 42161) {
             ladle = ILadle(0x16E25cf364CeCC305590128335B8f327975d0560);
             cauldron = ICauldron(0x23cc87FBEBDD67ccE167Fa9Ec6Ad3b7fE3892E30);
             current = 0x0e7727F4ee78D60f1D3aa30744B3ab6610F04170; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
@@ -197,7 +200,7 @@ contract Unwind {
             current = 0x8b814aD71e611e7a38eE64Ec16ce421A477956e1; knownContracts.push(current); contractTypes[current] = Type.STRATEGYV2;
             current = 0x2C918C4db3843F715556c65646f9E4a04C4BfBa6; knownContracts.push(current); contractTypes[current] = Type.STRATEGYV2;
         } else {
-            revert ("Unknown chain");
+            revert UnknownChain(block.chainid);
         }
     }
 
@@ -207,12 +210,13 @@ contract Unwind {
     }
 
     /// @dev Examine the caller's wallet and determine what the next step should be
-    function whatNext() public view returns (string memory, address target) {
-        for (i=0, i < knownContracts.length, i++) {
-            if (IERC20(knownContracts[i].balanceOf(msg.sender) > 0) {
+    function whatNext() public view returns (string memory, address) {
+        address target;
+        for (uint256 i=0; i < knownContracts.length; i++) {
+            if (IERC20(knownContracts[i]).balanceOf(msg.sender) > 0) {
                 target = knownContracts[i];
                 break;
-            })))
+            }
         }
 
         if (target == address(0x0)) return ("Nothing to do", address(0x0));
@@ -232,31 +236,31 @@ contract Unwind {
     /// User must have approved Unwind to take all their `target` tokens on the `target` contract
     function removeLiquidity(address target) public {
         if (contractTypes[target] == Type.UNKNOWN) {
-            revert("Unknown address"); // TODO: Link to README
+            revert UnknownAddress(target);
         }
 
         if (contractTypes[target] == Type.STRATEGYUPGRADE) {
-            revert("Must upgrade strategy"); // TODO: Link to README
+            revert MustUpgradeStrategy(target);
         }
         
         if (!checkAllowance(target)) {
-            revert("Not enough allowance of %s", target);
+            revert NotEnoughAllowance(target);
         }
         
         if (contractTypes[target] == Type.POOL) {
             IPool pool = IPool(target);
             // We don't need to check that the pool is mature, because we won't release this until they all are
-            pool.tranferFrom(msg.sender, address(pool), pool.balanceOf(msg.sender));
+            pool.transferFrom(msg.sender, address(pool), pool.balanceOf(msg.sender));
             pool.burn(msg.sender, msg.sender, 0, type(uint256).max);
         } else if (contractTypes[target] == Type.STRATEGYV2) {
             IStrategy strategy = IStrategy(target);
             strategy.transferFrom(msg.sender, address(strategy), strategy.balanceOf(msg.sender));
-            if (strategy.state() == Strategy.DIVESTED) {
+            if (strategy.state() == IStrategy.State.DIVESTED) {
                 strategy.burnDivested(msg.sender);
-            } else if (strategy.state() == Strategy.INVESTED) {
+            } else if (strategy.state() == IStrategy.State.INVESTED) {
                 strategy.burn(msg.sender);
             } else {
-                revert("Strategy is not in a burnable state");
+                revert StuckStrategy(target);
             }
         } else if (contractTypes[target] == Type.STRATEGYV1) {
             IStrategyV1 strategy = IStrategyV1(target);
@@ -267,7 +271,7 @@ contract Unwind {
                 strategy.burn(msg.sender);
             }
         } else {
-            revert("Not a liquidity address"); // TODO: Link to README
+            revert NotLiquidityAddress(target);
         }
     }
 
@@ -275,11 +279,11 @@ contract Unwind {
     /// User must have approved Unwind to take all their `target` tokens on the `target` contract
     function closeLend(address target) public {
         if (contractTypes[target] == Type.UNKNOWN) {
-            revert("Unknown address"); // TODO: Link to README
+            revert UnknownAddress(target);
         }
 
         if (!checkAllowance(target)) {
-            revert("Not enough allowance of %s", target);
+            revert NotEnoughAllowance(target);
         }
 
         if (contractTypes[target] == Type.FYTOKEN) {
@@ -287,34 +291,32 @@ contract Unwind {
             fyToken.transferFrom(msg.sender, address(fyToken), fyToken.balanceOf(msg.sender));
             fyToken.redeem(msg.sender, 0); // If there is more fyToken in the contract than we sent, that's a bonus for the caller
         } else {
-            revert("Not a lending address"); // TODO: Link to README
+            revert NotLendingAddress(target);
         }
     }
 
     /// @dev Unwind a borrowing position, removing all collateral
     /// User must have approved Unwind to take enough underlying to repay the loan.
-    /// Maybe approve max and then revoke, or use `howMuchDebt` and approve a bit more than returned since a few blocks will pass between calls.
+    /// Maybe approve max and then revoke, or use `howMuchDebt` and approve about 1.25x what was returned to be on the safe side.
     function closeBorrow(bytes12 vaultId) public {
-        // Get the corresponding Joins and FYToken
+        // Get the corresponding base join and vault data
         DataTypes.Vault memory vault = cauldron.vaults(vaultId);
         if (vault.owner == address(0)) {
-            revert("Vault does not exist");
+            revert VaultDoesNotExist(vaultId);
         }
 
         DataTypes.Series memory series = cauldron.series(vault.seriesId);
-        IFYToken fyToken = IFYToken(series.fyToken);
         IJoin baseJoin = IJoin(ladle.joins(series.baseId));
         IERC20 baseToken = IERC20(baseJoin.asset());
-        IJoin ilkJoin = IJoin(ladle.joins(vault.ilkId));
 
         // Get the vault art and ink
-        DataTypes.Balances balances = cauldron.balances(vaultId);
+        DataTypes.Balances memory balances = cauldron.balances(vaultId);
 
         // Convert the art into base
         uint256 baseAmount = cauldron.debtToBase(vault.seriesId, balances.art) + 1; // Let's take an extra wei, in case we mess up the rounding
 
-        if (!checkAllowance(baseToken)) {
-            revert("Not enough allowance of %s", target);
+        if (!checkAllowance(address(baseToken))) {
+            revert NotEnoughAllowance(address(baseToken));
         }
 
         // Transfer the base to the Join
@@ -324,11 +326,8 @@ contract Unwind {
         ladle.close(vaultId, msg.sender, -int128(balances.ink), -int128(balances.art)); // No one should have enough ink or art to make this overflow, and if they do, they are probably malicious, hurting only themselves.
     }
 
-    /// @dev Show how much debt is outstanding on a vault. Updates every block.
+    /// @dev Show how much debt is outstanding on a vault in fyToken, minus interest.
     function howMuchDebt(bytes12 vaultId) public view returns (uint256) {
-        DataTypes.Vault memory vault = cauldron.vaults(vaultId);
-        DataTypes.Series memory series = cauldron.series(vault.seriesId);
-        DataTypes.Balances memory balances = cauldron.balances(vaultId);
-        return cauldron.debtToBase(vault.seriesId, balances.art);
+        return cauldron.balances(vaultId).art;
     }
 }

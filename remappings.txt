@@ -1,2 +1,4 @@
-@prb/test/=lib/prb-test/src/
 forge-std/=lib/forge-std/src/
+@yield-protocol/vault-v2=lib/strategy-v2/lib/vault-v2
+@yield-protocol/yieldspace-tv=lib/strategy-v2/lib/yieldspace-tv
+@yield-protocol/utils-v2=lib/strategy-v2/lib/yield-utils-v2
