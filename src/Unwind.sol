@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
-import { IERC20 } from "lib/yield-utils-v2/src/token/IERC20.sol";
+import { ERC20 } from "lib/yield-utils-v2/src/token/ERC20.sol";
 import { IPool } from "lib/yieldspace-tv/src/interfaces/IPool.sol";
 import { IStrategy } from "lib/strategy-v2/src/interfaces/IStrategy.sol";
 import { IStrategyV1 } from "lib/strategy-v2/src/deprecated/IStrategyV1.sol";
@@ -53,29 +53,29 @@ contract Unwind {
             current = 0xcDfBf28Db3B1B7fC8efE08f988D955270A5c4752; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
             current = 0x38b8BF13c94082001f784A642165517F8760988f; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
             current = 0xC20952b2C8bB6689e7EC2F70Aeba392C378EC413; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x0FBd5ca8eE61ec921B3F61B707f1D7D64456d2d1; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x79A6Be1Ae54153AA6Fc7e4795272c63F63B2a6DC; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x22E1e5337C5BA769e98d732518b2128dE14b553C; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
+            current = 0x0FBd5ca8eE61ec921B3F61B707f1D7D64456d2d1; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0x79A6Be1Ae54153AA6Fc7e4795272c63F63B2a6DC; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0x22E1e5337C5BA769e98d732518b2128dE14b553C; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
             current = 0x2eb907fb4b71390dC5CD00e6b81B7dAAcE358193; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x124c9F7E97235Fe3E35820f95D10aFfCe4bE9168; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x9ca4D6fbE0Ba91d553e74805d2E2545b04AbEfEA; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x667f185407C4CAb52aeb681f0006e4642d8091DF; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
+            current = 0x124c9F7E97235Fe3E35820f95D10aFfCe4bE9168; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0x9ca4D6fbE0Ba91d553e74805d2E2545b04AbEfEA; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0x667f185407C4CAb52aeb681f0006e4642d8091DF; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
             current = 0xFA71e5f0072401dA161b1FC25a9636927AF690D0; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
             current = 0x8A6ff4c631816888444807541578Ab8465EdDDC2; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
             current = 0xA0e4B17042F20D9BadBdA9961C2D0987c90F6439; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0xc8110b03629211b946c2783637ABC9402b50EcDf; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0xc7f12Ea237bE7BE6028285052CF3727EaF0e597B; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x9912ED921832A8F6fc4a07E0892E5974A252043C; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
+            current = 0xc8110b03629211b946c2783637ABC9402b50EcDf; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance, maybe disabled after Euler event
+            current = 0xc7f12Ea237bE7BE6028285052CF3727EaF0e597B; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance, maybe disabled after Euler event
+            current = 0x9912ED921832A8F6fc4a07E0892E5974A252043C; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance, maybe disabled after Euler event
             current = 0xD28380De0e7093AC62bCb88610b9f4f4Fb58Be74; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0xD842A9f77e142f420BcdBCd6cFAC3548a68906dB; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0xB917a6CD3f811A84c1c5B972E2c715a6d93f40aa; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x74c4cEa80c1afEAda2907B55FDD9C958Da4a53F2; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
+            current = 0xD842A9f77e142f420BcdBCd6cFAC3548a68906dB; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0xB917a6CD3f811A84c1c5B972E2c715a6d93f40aa; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
+            current = 0x74c4cEa80c1afEAda2907B55FDD9C958Da4a53F2; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not enough join balance
             current = 0x299c9e28D2c5efa09aa147abB4f1CB4a8dc7AbE0; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
             current = 0xB38Ba395D15392796B51057490bBc790871dd6a0; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x82AC37A79D83f8C6E3B55E5e72e1f4ACb1E4fe9f; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0xB78F9F7d67a4c7cfAD0Dad80364E95bAe42d2fE1; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x9536C528d9e3f12586ea3E8f624dACb8150b22aa; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
-            current = 0x72791dA88B34869CdF4863d966F182D866f51c04; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN;
+            current = 0x82AC37A79D83f8C6E3B55E5e72e1f4ACb1E4fe9f; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not mature yet
+            current = 0xB78F9F7d67a4c7cfAD0Dad80364E95bAe42d2fE1; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not mature yet
+            current = 0x9536C528d9e3f12586ea3E8f624dACb8150b22aa; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not mature yet
+            current = 0x72791dA88B34869CdF4863d966F182D866f51c04; knownContracts.push(current); contractTypes[current] = Type.FYTOKEN; // - Not mature yet
             current = 0x6BaC09a67Ed1e1f42c29563847F77c28ec3a04FC; knownContracts.push(current); contractTypes[current] = Type.POOL;
             current = 0xf5Fd5A9Db9CcCc6dc9f5EF1be3A859C39983577C; knownContracts.push(current); contractTypes[current] = Type.POOL;
             current = 0x341B0976F962eC34eEaF31cdF2464Ab3B15B6301; knownContracts.push(current); contractTypes[current] = Type.POOL;
@@ -206,14 +206,19 @@ contract Unwind {
 
     /// @dev Verify that the caller has given permission to Unwind to take all their tokens from a given contract
     function checkAllowance(address target) public view returns (bool) {
-        return (IERC20(target).allowance(msg.sender, address(this)) >= IERC20(target).balanceOf(msg.sender));
+        return (ERC20(target).allowance(msg.sender, address(this)) >= ERC20(target).balanceOf(msg.sender));
+    }
+
+    /// @dev Return the amount of known contracts
+    function knownContractsLength() public view returns (uint256) {
+        return knownContracts.length;
     }
 
     /// @dev Examine the caller's wallet and determine what the next step should be
     function whatNext() public view returns (string memory, address) {
         address target;
         for (uint256 i=0; i < knownContracts.length; i++) {
-            if (IERC20(knownContracts[i]).balanceOf(msg.sender) > 0) {
+            if (ERC20(knownContracts[i]).balanceOf(msg.sender) > 0) {
                 target = knownContracts[i];
                 break;
             }
@@ -307,7 +312,7 @@ contract Unwind {
 
         DataTypes.Series memory series = cauldron.series(vault.seriesId);
         IJoin baseJoin = IJoin(ladle.joins(series.baseId));
-        IERC20 baseToken = IERC20(baseJoin.asset());
+        ERC20 baseToken = ERC20(baseJoin.asset());
 
         // Get the vault art and ink
         DataTypes.Balances memory balances = cauldron.balances(vaultId);
