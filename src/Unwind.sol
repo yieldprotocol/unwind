@@ -299,40 +299,4 @@ contract Unwind {
             revert NotLendingAddress(target);
         }
     }
-
-    /// @dev Unwind a borrowing position, removing all collateral
-    /// User must have approved Unwind to take enough underlying to repay the loan.
-    /// Maybe approve max and then revoke, or use `howMuchDebt` and approve about 1.25x what was returned to be on the safe side.
-    function closeBorrow(bytes12 vaultId) public {
-        // Get the corresponding base join and vault data
-        DataTypes.Vault memory vault = cauldron.vaults(vaultId);
-        if (vault.owner == address(0)) {
-            revert VaultDoesNotExist(vaultId);
-        }
-
-        DataTypes.Series memory series = cauldron.series(vault.seriesId);
-        IJoin baseJoin = IJoin(ladle.joins(series.baseId));
-        ERC20 baseToken = ERC20(baseJoin.asset());
-
-        // Get the vault art and ink
-        DataTypes.Balances memory balances = cauldron.balances(vaultId);
-
-        // Convert the art into base
-        uint256 baseAmount = cauldron.debtToBase(vault.seriesId, balances.art) + 1; // Let's take an extra wei, in case we mess up the rounding
-
-        if (!checkAllowance(address(baseToken))) {
-            revert NotEnoughAllowance(address(baseToken));
-        }
-
-        // Transfer the base to the Join
-        baseToken.transferFrom(msg.sender, address(baseJoin), baseAmount + 1);
-
-        // Call ladle.close to repay art and withdraw ink
-        ladle.close(vaultId, msg.sender, -int128(balances.ink), -int128(balances.art)); // No one should have enough ink or art to make this overflow, and if they do, they are probably malicious, hurting only themselves.
-    }
-
-    /// @dev Show how much debt is outstanding on a vault in fyToken, minus interest.
-    function howMuchDebt(bytes12 vaultId) public view returns (uint256) {
-        return cauldron.balances(vaultId).art;
-    }
 }
