@@ -50,13 +50,42 @@ contract UnwindTest is StdCheats {
         }
     }
 
-
-
     /// @dev Test that the total supply of all pools can be burned, or give a reason of why not
     function test_removePoolLiquidity() external {
         for (uint i = 0; i < unwind.knownContractsLength(); i++) {
             address target = unwind.knownContracts(i);
             if (unwind.contractTypes(target) == Unwind.Type.POOL) {
+                uint256 totalSupply = ERC20(target).totalSupply();
+                
+                deal(target, address(this), totalSupply);
+                ERC20(target).approve(address(unwind), type(uint256).max);
+                unwind.removeLiquidity(target);
+                console2.log("%s: Burned %s", ERC20(target).name(), totalSupply);
+            }
+        }
+    }
+
+    /// @dev Test that the total supply of all v2 strategies can be burned, or give a reason of why not
+    function test_removeStrategyV2Liquidity() external {
+        for (uint i = 0; i < unwind.knownContractsLength(); i++) {
+            address target = unwind.knownContracts(i);
+            if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV2) {
+                uint256 totalSupply = ERC20(target).totalSupply();
+                
+                deal(target, address(this), totalSupply);
+                ERC20(target).approve(address(unwind), type(uint256).max);
+                unwind.removeLiquidity(target);
+                console2.log("%s: Burned %s", ERC20(target).name(), totalSupply);
+            }
+        }
+    }
+
+
+    /// @dev Test that the total supply of all v1 strategies can be burned, or give a reason of why not
+    function test_removeStrategyV1Liquidity() external {
+        for (uint i = 0; i < unwind.knownContractsLength(); i++) {
+            address target = unwind.knownContracts(i);
+            if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV1) {
                 uint256 totalSupply = ERC20(target).totalSupply();
                 
                 deal(target, address(this), totalSupply);
