@@ -26,7 +26,7 @@ contract UnwindTest is StdCheats {
         unwind = new Unwind();
     }
 
-    /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
+    /// @dev Test that the total supply of all fyToken can be redeemed, or give a reason of why not
     function test_closeLend() external {
         for (uint i = 0; i < unwind.knownContractsLength(); i++) {
             address target = unwind.knownContracts(i);
@@ -44,12 +44,28 @@ contract UnwindTest is StdCheats {
                     deal(target, address(this), totalSupply);
                     ERC20(target).approve(address(unwind), type(uint256).max);
                     unwind.closeLend(target);
-                    console2.log("%s: Redeemed", ERC20(target).name());
+                    console2.log("%s: Redeemed %s", ERC20(target).name(), totalSupply);
                 }
             }
         }
     }
 
+
+
+    /// @dev Test that the total supply of all pools can be burned, or give a reason of why not
+    function test_removePoolLiquidity() external {
+        for (uint i = 0; i < unwind.knownContractsLength(); i++) {
+            address target = unwind.knownContracts(i);
+            if (unwind.contractTypes(target) == Unwind.Type.POOL) {
+                uint256 totalSupply = ERC20(target).totalSupply();
+                
+                deal(target, address(this), totalSupply);
+                ERC20(target).approve(address(unwind), type(uint256).max);
+                unwind.removeLiquidity(target);
+                console2.log("%s: Burned %s", ERC20(target).name(), totalSupply);
+            }
+        }
+    }
 // 
 //     /// @dev Fuzz test that provides random values for an unsigned integer, but which rejects zero as an input.
 //     /// If you need more sophisticated input validation, you should use the `bound` utility instead.
