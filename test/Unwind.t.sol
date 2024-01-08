@@ -22,6 +22,15 @@ contract UnwindTest is PRBTest, StdCheats {
     function setUp() public virtual {
         // Instantiate the contract-under-test.
         unwind = new Unwind();
+
+        for (uint i = 0; i < unwind.knownContractsLength(); i++) {
+            address target = unwind.knownContracts(i);
+            if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV2 && IStrategy(target).state() == IStrategy.State.INVESTED) {
+                console2.log("%s: Divesting", ERC20(target).name());
+                IStrategy(target).divest();
+                console2.log("%s: Divested", ERC20(target).name());
+            }
+        }
     }
 
 
