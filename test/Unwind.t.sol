@@ -23,6 +23,7 @@ contract UnwindTest is PRBTest, StdCheats {
         // Instantiate the contract-under-test.
         unwind = new Unwind();
 
+        // Uncomment the block below to test in a fully divested environment
         // for (uint i = 0; i < unwind.knownContractsLength(); i++) {
         //     address target = unwind.knownContracts(i);
         //     if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV2 && IStrategy(target).state() == IStrategy.State.INVESTED) {
