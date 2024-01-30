@@ -23,14 +23,14 @@ contract UnwindTest is PRBTest, StdCheats {
         // Instantiate the contract-under-test.
         unwind = new Unwind();
 
-        for (uint i = 0; i < unwind.knownContractsLength(); i++) {
-            address target = unwind.knownContracts(i);
-            if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV2 && IStrategy(target).state() == IStrategy.State.INVESTED) {
-                console2.log("%s: Divesting", ERC20(target).name());
-                IStrategy(target).divest();
-                console2.log("%s: Divested", ERC20(target).name());
-            }
-        }
+        // for (uint i = 0; i < unwind.knownContractsLength(); i++) {
+        //     address target = unwind.knownContracts(i);
+        //     if (unwind.contractTypes(target) == Unwind.Type.STRATEGYV2 && IStrategy(target).state() == IStrategy.State.INVESTED) {
+        //         console2.log("%s: Divesting", ERC20(target).name());
+        //         IStrategy(target).divest();
+        //         console2.log("%s: Divested", ERC20(target).name());
+        //     }
+        // }
     }
 
 
@@ -40,7 +40,7 @@ contract UnwindTest is PRBTest, StdCheats {
             address target = unwind.knownContracts(i);
 
             deal(target, address(this), 1);
-            (string memory action, address targetOut) = unwind.whatNext();
+            (string memory action, address targetOut) = unwind.whatNext(address(this));
             ERC20(target).transfer(address(0),1);
                 
             assertEq(target, targetOut);
@@ -49,7 +49,7 @@ contract UnwindTest is PRBTest, StdCheats {
 
         // Test that we don't tell users to do anything with the tokens that are not in the list
         address target = address(0);
-        (string memory action, address targetOut) = unwind.whatNext();
+        (string memory action, address targetOut) = unwind.whatNext(address(this));
         assertEq(target, targetOut);
         console2.log("%s: %s", target, action);
     }

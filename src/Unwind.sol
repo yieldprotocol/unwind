@@ -31,6 +31,7 @@ contract Unwind {
     error NotEnoughAllowance(address target);
     error StuckStrategy(address strategy);
     error NotLiquidityAddress(address target);
+    error NoBalance(address target);
 
     address[] public knownContracts;
     mapping(address => Type) public contractTypes; // Surely I could do magic and do a read-only storage mapping, but not worth the effort and complexity this time.
@@ -167,10 +168,11 @@ contract Unwind {
     }
 
     /// @dev Examine the caller's wallet and determine what the next step should be
-    function whatNext() public view returns (string memory, address) {
+    /// @param user The address to look in for Yield Protocol tokens
+    function whatNext(address user) public view returns (string memory, address) {
         address target;
         for (uint256 i=0; i < knownContracts.length; i++) {
-            if (ERC20(knownContracts[i]).balanceOf(msg.sender) > 0) {
+            if (ERC20(knownContracts[i]).balanceOf(user) > 0) {
                 target = knownContracts[i];
                 break;
             }
@@ -188,6 +190,7 @@ contract Unwind {
 
     /// @dev Execute one step closer to full unwinding on a liquidity position
     /// User must have approved Unwind to take all their `target` tokens on the `target` contract
+    /// @param target The Yield Protocol token address to unwind from the caller
     function removeLiquidity(address target) public {
         if (contractTypes[target] == Type.UNKNOWN) {
             revert UnknownAddress(target);
@@ -201,14 +204,19 @@ contract Unwind {
             revert NotEnoughAllowance(target);
         }
         
+        uint256 tokenAmount = ERC20(target).balanceOf(msg.sender);
+        if (tokenAmount == 0) {
+            revert NoBalance(target);
+        }
+
         if (contractTypes[target] == Type.POOL) {
             IPool pool = IPool(target);
             // We don't need to check that the pool is mature, because we won't release this until they all are
-            pool.transferFrom(msg.sender, address(pool), pool.balanceOf(msg.sender));
+            pool.transferFrom(msg.sender, address(pool), tokenAmount);
             pool.burn(msg.sender, msg.sender, 0, type(uint256).max);
         } else if (contractTypes[target] == Type.STRATEGYV2) {
             IStrategy strategy = IStrategy(target);
-            strategy.transferFrom(msg.sender, address(strategy), strategy.balanceOf(msg.sender));
+            strategy.transferFrom(msg.sender, address(strategy), tokenAmount);
             if (strategy.state() == IStrategy.State.DIVESTED) {
                 strategy.burnDivested(msg.sender);
             } else if (strategy.state() == IStrategy.State.INVESTED) {
@@ -218,7 +226,7 @@ contract Unwind {
             }
         } else if (contractTypes[target] == Type.STRATEGYV1) {
             IStrategyV1 strategy = IStrategyV1(target);
-            strategy.transferFrom(msg.sender, address(strategy), strategy.balanceOf(msg.sender));
+            strategy.transferFrom(msg.sender, address(strategy), tokenAmount);
             if (address(strategy.pool()) == address(0x0)) {
                 strategy.burnForBase(msg.sender);
             } else {
