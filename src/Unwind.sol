@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
+// Audit: https://github.com/christos-eth/Unwind-audit/issues/2
+
 pragma solidity ^0.8.21;
 
 import { ERC20 } from "lib/yield-utils-v2/src/token/ERC20.sol";
